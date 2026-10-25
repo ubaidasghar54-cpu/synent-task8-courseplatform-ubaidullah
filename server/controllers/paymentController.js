@@ -5,25 +5,19 @@ const Enrollment = require('../models/Enrollment');
 const Payment = require('../models/Payment');
 const { sendEnrollmentEmail } = require('../utils/sendEmail');
 
-/**
- * Helper to get Razorpay instance
- */
+// Initialize Razorpay client if test credentials are set
 const getRazorpayInstance = () => {
   const key_id = process.env.RAZORPAY_KEY_ID;
   const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
   if (!key_id || key_id === 'rzp_test_placeholder') {
-    return null; // Signals test fallback mode
+    return null;
   }
 
   return new Razorpay({ key_id, key_secret });
 };
 
-/**
- * @desc   Create Razorpay Order for a course
- * @route  POST /api/payments/create-order
- * @access Private (Protected)
- */
+// Create a Razorpay order
 const createOrder = async (req, res, next) => {
   try {
     const { courseId } = req.body;
@@ -35,7 +29,6 @@ const createOrder = async (req, res, next) => {
       });
     }
 
-    // 1. Check if course exists
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({
@@ -44,7 +37,7 @@ const createOrder = async (req, res, next) => {
       });
     }
 
-    // 2. Prevent duplicate enrollment
+    // Check if the user is already enrolled
     const existingEnrollment = await Enrollment.findOne({
       user: req.user._id,
       course: courseId
@@ -57,40 +50,66 @@ const createOrder = async (req, res, next) => {
       });
     }
 
-    const amountInPaise = Math.round(course.price * 100);
+    const displayCurrency = process.env.CURRENCY || 'PKR';
+    const chargeCurrency = process.env.RAZORPAY_CHARGE_CURRENCY || displayCurrency;
+    const exchangeRate = Number(process.env.EXCHANGE_RATE) || 1;
+
+    // Convert price if a test fallback currency is configured
+    let chargePrice = course.price;
+    if (chargeCurrency !== displayCurrency) {
+      chargePrice = course.price * exchangeRate;
+    }
+
+    // Razorpay expects amount in smallest currency unit (1 PKR = 100 paisas)
+    const amountInSubunits = Math.round(chargePrice * 100);
     const razorpay = getRazorpayInstance();
 
-    // 3. Create Razorpay order if active credentials exist
     if (razorpay) {
-      const options = {
-        amount: amountInPaise,
-        currency: 'INR',
-        receipt: `receipt_${course._id.toString().slice(-6)}_${Date.now()}`
-      };
+      try {
+        const order = await razorpay.orders.create({
+          amount: amountInSubunits,
+          currency: chargeCurrency,
+          receipt: `receipt_${course._id.toString().slice(-6)}_${Date.now()}`
+        });
 
-      const order = await razorpay.orders.create(options);
+        return res.status(200).json({
+          success: true,
+          orderId: order.id,
+          amount: order.amount,
+          currency: order.currency,
+          displayCurrency,
+          keyId: process.env.RAZORPAY_KEY_ID,
+          course: {
+            id: course._id,
+            title: course.title,
+            price: course.price
+          }
+        });
+      } catch (razorpayError) {
+        const errorDesc = razorpayError.error?.description || razorpayError.message || 'Payment provider error';
+        console.error(`[Razorpay] Order creation failed: ${errorDesc}`);
 
-      return res.status(200).json({
-        success: true,
-        orderId: order.id,
-        amount: order.amount,
-        currency: order.currency,
-        keyId: process.env.RAZORPAY_KEY_ID,
-        course: {
-          id: course._id,
-          title: course.title,
-          price: course.price
-        }
-      });
+        const isCurrencyError =
+          errorDesc.toLowerCase().includes('currency') ||
+          errorDesc.toLowerCase().includes('not supported') ||
+          errorDesc.toLowerCase().includes('international');
+
+        return res.status(400).json({
+          success: false,
+          message: isCurrencyError
+            ? `Razorpay rejected currency ${chargeCurrency}. Enable International Payments in your Razorpay dashboard or set RAZORPAY_CHARGE_CURRENCY=INR with EXCHANGE_RATE in server/.env.`
+            : `Could not create order: ${errorDesc}`
+        });
+      }
     } else {
-      // Development mock fallback if no live Razorpay test keys are configured yet
-      const mockOrderId = `order_test_${Date.now()}`;
+      // Mock mode for local dev before keys are added
       return res.status(200).json({
         success: true,
         isMockMode: true,
-        orderId: mockOrderId,
-        amount: amountInPaise,
-        currency: 'INR',
+        orderId: `order_test_${Date.now()}`,
+        amount: amountInSubunits,
+        currency: chargeCurrency,
+        displayCurrency,
         keyId: 'rzp_test_placeholder',
         course: {
           id: course._id,
@@ -104,11 +123,7 @@ const createOrder = async (req, res, next) => {
   }
 };
 
-/**
- * @desc   Verify Razorpay HMAC SHA-256 signature and enroll user
- * @route  POST /api/payments/verify-payment
- * @access Private (Protected)
- */
+// Verify Razorpay payment and enroll user
 const verifyPayment = async (req, res, next) => {
   try {
     const { courseId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
@@ -120,7 +135,6 @@ const verifyPayment = async (req, res, next) => {
       });
     }
 
-    // 1. Prevent duplicate enrollment race condition
     const existingEnrollment = await Enrollment.findOne({
       user: req.user._id,
       course: courseId
@@ -141,7 +155,7 @@ const verifyPayment = async (req, res, next) => {
       });
     }
 
-    // 2. Cryptographic signature check (HMAC SHA-256 of orderId + '|' + paymentId)
+    // Verify signature using the secret key
     const secret = process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret';
     const hmac = crypto.createHmac('sha256', secret);
     hmac.update(`${razorpayOrderId}|${razorpayPaymentId}`);
@@ -150,49 +164,52 @@ const verifyPayment = async (req, res, next) => {
     const isTestBypass = razorpayOrderId.startsWith('order_test_') && razorpaySignature === 'test_bypass_sig';
     const isSignatureValid = isTestBypass || (generatedSignature === razorpaySignature);
 
+    const activeCurrency = req.body.currency || process.env.CURRENCY || 'PKR';
+
     if (!isSignatureValid) {
-      // Record failed transaction for audit
+      // Save failed record for history
       await Payment.create({
         user: req.user._id,
         course: courseId,
         razorpayOrderId,
         razorpayPaymentId,
         amount: course.price,
+        currency: activeCurrency,
         status: 'failed'
       });
 
       return res.status(400).json({
         success: false,
-        message: 'Payment verification failed: cryptographic signature mismatch'
+        message: 'Payment verification failed: invalid signature'
       });
     }
 
-    // 3. Record successful captured payment
+    // Save successful payment
     const payment = await Payment.create({
       user: req.user._id,
       course: courseId,
       razorpayOrderId,
       razorpayPaymentId,
       amount: course.price,
-      currency: 'INR',
+      currency: activeCurrency,
       status: 'captured'
     });
 
-    // 4. Enroll the user in the course
+    // Create course enrollment
     const enrollment = await Enrollment.create({
       user: req.user._id,
       course: courseId,
       completedLessons: []
     });
 
-    // 5. Send automated enrollment receipt email (non-blocking)
+    // Send confirmation email
     sendEnrollmentEmail(req.user, course, payment).catch(err =>
-      console.error('[Email Error] Enrollment email dispatch failed:', err.message)
+      console.error('[Email] Failed to send enrollment email:', err.message)
     );
 
     res.status(200).json({
       success: true,
-      message: 'Payment successfully verified! Course has been added to My Courses.',
+      message: 'Payment verified! You are now enrolled in the course.',
       enrollmentId: enrollment._id,
       paymentId: payment._id
     });
@@ -205,4 +222,3 @@ module.exports = {
   createOrder,
   verifyPayment
 };
-

@@ -45,7 +45,7 @@ const Navbar = () => {
               {isAdmin && (
                 <Link to="/admin" className="nav-link" onClick={closeMenu} style={{ color: 'var(--color-accent)' }}>
                   <Shield size={16} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                  Admin Suite
+                  Admin
                 </Link>
               )}
               

@@ -124,7 +124,7 @@ const sendEnrollmentEmail = async (user, course, payment) => {
               <h3 style="color: #0F172A; margin-top: 0; font-size: 15px;">Transaction Receipt</h3>
               <p style="margin: 4px 0; color: #475569; font-size: 14px;"><strong>Course:</strong> ${course.title}</p>
               <p style="margin: 4px 0; color: #475569; font-size: 14px;"><strong>Category:</strong> ${course.category}</p>
-              <p style="margin: 4px 0; color: #475569; font-size: 14px;"><strong>Amount Paid:</strong> ₹${payment.amount}</p>
+              <p style="margin: 4px 0; color: #475569; font-size: 14px;"><strong>Amount Paid:</strong> ${payment.currency || 'PKR'} ${payment.amount}</p>
               <p style="margin: 4px 0; color: #475569; font-size: 14px;"><strong>Razorpay Order ID:</strong> ${payment.razorpayOrderId}</p>
               <p style="margin: 4px 0; color: #475569; font-size: 14px;"><strong>Payment Status:</strong> <span style="color: #10B981; font-weight: bold;">Captured (Verified)</span></p>
             </div>

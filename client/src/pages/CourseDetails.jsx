@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { formatPrice } from '../utils/formatPrice';
 import {
   ArrowLeft,
   Layers,
@@ -72,7 +73,8 @@ const CourseDetails = () => {
           courseId: course._id,
           razorpayOrderId: orderId,
           razorpayPaymentId: `pay_test_${Date.now()}`,
-          razorpaySignature: 'test_bypass_sig'
+          razorpaySignature: 'test_bypass_sig',
+          currency: currency || 'PKR'
         });
 
         setIsEnrolled(true);
@@ -104,7 +106,8 @@ const CourseDetails = () => {
               courseId: course._id,
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature
+              razorpaySignature: response.razorpay_signature,
+              currency: currency || 'PKR'
             });
 
             setIsEnrolled(true);
@@ -263,7 +266,7 @@ const CourseDetails = () => {
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Total Investment</div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-dark)' }}>
-                ₹{course.price}
+                {formatPrice(course.price)}
               </div>
             </div>
 
@@ -291,7 +294,7 @@ const CourseDetails = () => {
                 ) : (
                   <>
                     <CreditCard size={18} />
-                    <span>Enroll Now (₹{course.price})</span>
+                    <span>Enroll Now ({formatPrice(course.price)})</span>
                   </>
                 )}
               </button>

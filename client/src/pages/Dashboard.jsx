@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import { formatPrice } from '../utils/formatPrice';
 import { Search, Layers, PlayCircle, Clock, ArrowRight, AlertCircle } from 'lucide-react';
 
 const Dashboard = () => {
@@ -63,10 +64,10 @@ const Dashboard = () => {
       {/* Catalog Title Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-dark)', marginBottom: '0.5rem' }}>
-          Explore Our Courses
+          Explore Courses
         </h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '1.05rem' }}>
-          Discover industry-vetted courses with structured modules, test mode payments, and interactive learning.
+          Browse available courses, watch video lessons, and track your learning progress.
         </p>
       </div>
 
@@ -187,7 +188,7 @@ const Dashboard = () => {
 
                   <div className="course-footer">
                     <div className="course-price">
-                      ₹{course.price}
+                      {formatPrice(course.price)}
                     </div>
                     <Link to={`/courses/${course._id}`} className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
                       View Details <ArrowRight size={14} />

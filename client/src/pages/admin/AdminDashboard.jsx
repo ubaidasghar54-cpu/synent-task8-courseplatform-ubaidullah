@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { formatPrice } from '../../utils/formatPrice';
 import {
   Shield,
   BookOpen,
@@ -12,7 +13,7 @@ import {
   CheckCircle2,
   Layers,
   Users,
-  IndianRupee,
+  Wallet,
   GraduationCap,
   PlayCircle,
   Clock,
@@ -282,10 +283,10 @@ const AdminDashboard = () => {
       <div className="admin-header">
         <div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-            <Shield size={16} /> Administrator Management Suite
+            <Shield size={16} /> Admin Portal
           </div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-dark)' }}>
-            Course Control Center
+            Admin Dashboard
           </h1>
         </div>
 
@@ -308,13 +309,13 @@ const AdminDashboard = () => {
           onClick={() => setActiveTab('curriculum')}
           className={`admin-tab ${activeTab === 'curriculum' ? 'active' : ''}`}
         >
-          <Layers size={18} /> Modules & Lessons Manager
+          <Layers size={18} /> Course Content
         </button>
         <button
           onClick={() => setActiveTab('users')}
           className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
         >
-          <Users size={18} /> Users & Enrollments Auditor
+          <Users size={18} /> Students & Enrollments
         </button>
       </div>
 
@@ -381,7 +382,7 @@ const AdminDashboard = () => {
                           </span>
                         </td>
                         <td style={{ fontWeight: 700, color: 'var(--color-dark)' }}>
-                          ₹{course.price}
+                          {formatPrice(course.price)}
                         </td>
                         <td style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
                           {moduleCount} modules • {lessonCount} lessons
@@ -431,7 +432,7 @@ const AdminDashboard = () => {
             >
               {courses.map((c) => (
                 <option key={c._id} value={c._id}>
-                  {c.title} (₹{c.price})
+                  {c.title} ({formatPrice(c.price)})
                 </option>
               ))}
             </select>
@@ -590,10 +591,10 @@ const AdminDashboard = () => {
           <div className="stat-grid">
             <div className="stat-card">
               <div className="stat-icon" style={{ background: 'rgba(251, 191, 36, 0.2)', color: '#D97706' }}>
-                <IndianRupee size={24} />
+                <Wallet size={24} />
               </div>
               <div>
-                <div className="stat-value">₹{stats.totalRevenue?.toLocaleString()}</div>
+                <div className="stat-value">{formatPrice(stats.totalRevenue || 0)}</div>
                 <div className="stat-label">Total Revenue Generated</div>
               </div>
             </div>
@@ -632,14 +633,14 @@ const AdminDashboard = () => {
           {isAuditLoading ? (
             <div className="page-loader">
               <div className="spinner" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent', width: '2.5rem', height: '2.5rem' }}></div>
-              <p>Auditing user records and transaction ledgers...</p>
+              <p>Loading students and enrollments...</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               {/* Enrollments & Sales Ledger */}
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-dark)', marginBottom: '1rem' }}>
-                  Student Enrollment & Transactions Ledger ({auditEnrollments.length})
+                  Recent Enrollments ({auditEnrollments.length})
                 </h3>
                 <div className="table-responsive">
                   <table className="admin-table">
@@ -666,7 +667,7 @@ const AdminDashboard = () => {
                             </td>
                             <td style={{ fontWeight: 600 }}>{e.courseTitle}</td>
                             <td style={{ fontWeight: 700, color: 'var(--color-success)' }}>
-                              ₹{e.coursePrice}
+                              {formatPrice(e.coursePrice)}
                             </td>
                             <td>
                               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, fontSize: '0.85rem', color: e.progressPercentage === 100 ? 'var(--color-success)' : 'var(--color-primary)' }}>
@@ -781,7 +782,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Price in INR (₹) *</label>
+                  <label className="form-label">Price ({import.meta.env.VITE_CURRENCY || 'PKR'}) *</label>
                   <input
                     type="number"
                     min="0"

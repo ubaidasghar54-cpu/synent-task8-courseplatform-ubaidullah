@@ -8,7 +8,7 @@ const sampleCourses = [
   {
     title: 'Full-Stack MERN Mastery 2026',
     description: 'Learn to build production-grade web applications from scratch with MongoDB, Express, React, and Node.js. Includes authentication, state management, and real-time APIs.',
-    price: 499,
+    price: 4999,
     category: 'Web Development',
     thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60',
     modules: [
@@ -47,7 +47,7 @@ const sampleCourses = [
   {
     title: 'Modern React & Next.js Bootcamp',
     description: 'Master React 18 hooks, Server Components, suspense, client caching, and modern styling architectures for lightning-fast responsive user interfaces.',
-    price: 399,
+    price: 3999,
     category: 'Frontend',
     thumbnail: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=800&auto=format&fit=crop&q=60',
     modules: [
@@ -81,7 +81,7 @@ const sampleCourses = [
   {
     title: 'Node.js Backend & API Architecture',
     description: 'Design robust, scalable, and secure microservices and RESTful APIs using Node.js, JWT, bcrypt, rate limiting, and database indexing.',
-    price: 349,
+    price: 3499,
     category: 'Backend',
     thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=60',
     modules: [
@@ -105,7 +105,7 @@ const sampleCourses = [
   {
     title: 'Python for Data Science & Machine Learning',
     description: 'Hands-on journey through Python, NumPy, Pandas, Matplotlib, and Scikit-Learn. Clean real-world datasets and deploy predictive models.',
-    price: 449,
+    price: 4499,
     category: 'Data Science',
     thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=60',
     modules: [
@@ -129,7 +129,7 @@ const sampleCourses = [
   {
     title: 'UI/UX Design Systems & Figma for Developers',
     description: 'Learn wireframing, component-driven design systems, color theory, typography, and how to export Figma designs directly to responsive clean CSS.',
-    price: 299,
+    price: 2999,
     category: 'Design',
     thumbnail: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&auto=format&fit=crop&q=60',
     modules: [
@@ -166,8 +166,9 @@ const seedCourses = async () => {
     const inserted = await Course.insertMany(sampleCourses);
     console.log(`[Seed] Successfully seeded ${inserted.length} courses!`);
 
+    const activeCurrency = process.env.CURRENCY || 'PKR';
     inserted.forEach((c, idx) => {
-      console.log(`  ${idx + 1}. [${c.category}] ${c.title} - ₹${c.price}`);
+      console.log(`  ${idx + 1}. [${c.category}] ${c.title} - ${activeCurrency} ${c.price}`);
     });
 
     process.exit(0);

@@ -10,13 +10,13 @@ const Home = () => {
     <div>
       <section className="hero">
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(251, 191, 36, 0.15)', color: 'var(--color-accent)', padding: '4px 12px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1.25rem' }}>
-          <Sparkles size={14} /> Master Modern Tech Skills
+          <Sparkles size={14} /> Learn Modern Tech Skills
         </div>
         <h1>
-          Supercharge Your Career with <span>Industry-Grade</span> Courses
+          Learn In-Demand <span>Tech & Coding</span> Skills
         </h1>
         <p>
-          High-impact video modules, real-world projects, instant enrollment with Razorpay test payments, and hands-on progress tracking.
+          Structured video lessons, self-paced learning, Razorpay test payments, and interactive progress tracking.
         </p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <Link to="/courses" className="btn btn-accent" style={{ padding: '0.85rem 1.5rem', fontSize: '1rem' }}>
@@ -37,7 +37,7 @@ const Home = () => {
           </div>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Structured Video Lessons</h3>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
-            Watch curated YouTube modules sequentially. Track lesson completion in real-time.
+            Watch curated video modules sequentially and track your lesson progress as you learn.
           </p>
         </div>
 
@@ -45,9 +45,9 @@ const Home = () => {
           <div style={{ background: 'rgba(251, 191, 36, 0.15)', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706', marginBottom: '1rem' }}>
             <ShieldCheck size={24} />
           </div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Secure Razorpay Checkout</h3>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Razorpay Test Checkout</h3>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
-            Safe test mode payments backed by server-side HMAC SHA-256 cryptographic signature verification.
+            Test payments integrated with Razorpay, instant enrollment, and automated email confirmation.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ const Home = () => {
           </div>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Progress Tracking</h3>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
-            Mark completed lessons, calculate completion percentages, and retain persistent enrollment state.
+            Mark lessons as completed, track your progress percentage, and pick up right where you left off.
           </p>
         </div>
       </section>
